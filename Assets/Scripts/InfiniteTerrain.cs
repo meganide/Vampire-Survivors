@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class InfiniteTerrain : MonoBehaviour {
-    [SerializeField] private Tilemap backgroundTilemap;
+    [SerializeField] private Tilemap[] backgroundTilemaps;
 
     private int backgroundTilemapWidth = 28;
     private int backgroundTilemapHeight = 18;
@@ -22,10 +22,6 @@ public class InfiniteTerrain : MonoBehaviour {
         backgroundLayerMask = LayerMask.GetMask("Background");
     }
 
-    private void Start() {
-        tilemaps.Add(backgroundTilemap);
-    }
-
     void Update() {
         playerPosition = player.transform.position;
 
@@ -41,7 +37,7 @@ public class InfiniteTerrain : MonoBehaviour {
         }
     }
 
-    private Tilemap? GetTilemapAtPosition(Vector3 position) {
+    private Tilemap GetTilemapAtPosition(Vector3 position) {
         Collider2D backgroundCollider = Physics2D.OverlapBox(position, new Vector2(1, 1), 0, backgroundLayerMask);
         if (backgroundCollider != null) {
             Tilemap currentBackgroundTilemap = backgroundCollider.GetComponentInParent<Tilemap>();
@@ -69,7 +65,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         foreach (var offset in neighborOffsets) {
             Vector3 neighborPosition = offset + currentTilemapPosition;
-            Tilemap? neighborTilemap = GetTilemapAtPosition(neighborPosition);
+            Tilemap neighborTilemap = GetTilemapAtPosition(neighborPosition);
             if (neighborTilemap == null) {
                 InstantiateTilemap(neighborPosition);
             }
@@ -78,7 +74,9 @@ public class InfiniteTerrain : MonoBehaviour {
 
 
     private void InstantiateTilemap(Vector3 position) {
-        Tilemap tilemap = Instantiate(backgroundTilemap, position, Quaternion.identity);
+        int randomIndex = Random.Range(0, backgroundTilemaps.Length);
+        Tilemap randomTilemap = backgroundTilemaps[randomIndex];
+        Tilemap tilemap = Instantiate(randomTilemap, position, Quaternion.identity);
         tilemap.transform.SetParent(grid.transform);
         tilemaps.Add(tilemap);
     }
@@ -95,6 +93,7 @@ public class InfiniteTerrain : MonoBehaviour {
 
         foreach (var tilemapToRemove in tilemapsToRemove) {
             tilemaps.Remove(tilemapToRemove);
+            Debug.Log(tilemapToRemove.transform);
             Destroy(tilemapToRemove.gameObject);
         }
     }
